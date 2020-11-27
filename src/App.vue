@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TheHeader v-if="$store.getters['user/isAuth']"/>
+    <TheHeader/>
     <router-view class="container is-widescreen"></router-view>
   </div>
 </template>

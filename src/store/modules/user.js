@@ -24,6 +24,9 @@ const getters = {
     getRole: (state) => {
         return state.role
     },
+    getHouse: (state) => {
+        return state.house
+    },
     getUser: (state) => {
         return {
             username: state.username,

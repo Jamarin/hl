@@ -37,9 +37,49 @@ export default {
             message: message
         })
     },
-    hideChatMessage(id) {
-        return AXIOS.put('/chat/hide/', {
-            id: id
+    toggleHideMessage(id, currentStatus) {
+        return AXIOS.put('/chat/toggle-hide/', {
+            id: id,
+            currentStatus: currentStatus
         })
+    },
+    toggleHighlightMessage(id, currentStatus) {
+        return AXIOS.put('/chat/toggle-highlight/', {
+            id: id,
+            currentStatus: currentStatus
+        })
+    },
+    getAllOwlsSent(id) {
+        return AXIOS.get(`/owlery/all/sender/${id}`)
+    },
+    getAllOwlsReceived(id) {
+        return AXIOS.get(`/owlery/all/receptor/${id}`)
+    },
+    getAllUsersForOwls(id) {
+        return AXIOS.get(`/user/all/owlery/${id}`)
+    },
+    markOwlAsRead(id) {
+        return AXIOS.put('/owlery/mark-read/', {
+            id
+        })
+    },
+    sendOwl(owl) {
+        return AXIOS.post(`/owlery/send/`, {
+            owl
+        })
+    },
+    getUserDataByUsername(username) {
+        return AXIOS.get(`/user/${username}`)
+    },
+    getUserPointsById(id) {
+        return AXIOS.get(`/user/points/${id}`)
+    },
+    changePoints(changePointsData) {
+        return AXIOS.post(`/user/points/add/`, {
+            changePointsData: changePointsData
+        })
+    },
+    getAllNewsShow() {
+        return AXIOS.get('/news/show/all/')
     }
 }

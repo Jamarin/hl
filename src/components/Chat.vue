@@ -2,10 +2,24 @@
   <div>
     <div class="chat-messageList">
       <div class="chat-message" v-for="(message, index) in messages" :key="message.id">
-        <div :class="(index%2===0) ? 'chat-message-pair' : 'chat-message-odd'">
-          <div class="chat-message-author" :class="(message.hidden) ? 'stroke' : ''"><router-link :to="{name: 'profile', params: { username: message.author }}">{{ message.author }}</router-link>: </div>
+        <div v-show="canViewDeletedMessages(message.hidden)" :class="{
+            'chat-message-pair': (index%2===0),
+            'chat-message-odd': (index%2!==0),
+            'chat-message-highlighted': (message.highlighted),
+            'strike': message.hidden
+          }">
+          <div class="chat-message-author" :class="{
+            'ravenclaw': message.author.house === 'ravenclaw',
+            'gryffindor': message.author.house === 'gryffindor',
+            'hufflepuff': message.author.house === 'hufflepuff',
+            'slytherin': message.author.house === 'slytherin'
+          }"><router-link :to="{name: 'profile', params: { username: message.author.username }}">{{ message.author.username }}</router-link>: </div>
           <div class="chat-message-text">{{ message.message }}</div>
-          <div class="chat-message-admin" v-if="isAdmin"><span @click="hideMessage(message.id)">eye</span></div>
+          <div class="chat-message-admin" v-if="isAdmin">
+            <span @click="toggleHideMessage(message.id, message.hidden)">eye</span>
+             ||
+            <span @click="toggleHighlightMessage(message.id, message.highlighted)">star</span>
+          </div>
         </div>
       </div>
       <hr>
@@ -47,7 +61,7 @@ export default {
       if(this.messages.length === 20) this.messages.pop()
       this.messages.unshift(data)
     })
-    this.socket.on(`HIDDEN_${this.chatArea}`, (data) => {
+    this.socket.on(`UPDATE_${this.chatArea}`, (data) => {
       this.messages = data
     })
   },
@@ -60,28 +74,45 @@ export default {
     }
   },
   methods: {
+    canViewDeletedMessages(hidden) {
+      if(hidden &&  this.isAdmin) return true
+      return !hidden;
+
+    },
     sendMessage: async function () {
+      if(this.chatMessage === '') {
+        this.$buefy.notification.open({type: 'is-danger', message: 'Error: message cannot be empty'})
+        return
+      }
       try {
         let response = await api.sendChatMessage({
           message: this.chatMessage,
           user: this.getUserId,
           chat: this.chatArea
         })
-        console.info(response)
-        this.chatMessage = ''
+        if(response.status === 200) {
+          this.chatMessage = ''
+        } else {
+          this.$buefy.notification.open({type: 'is-danger', message: 'Error: message not sent'})
+        }
       } catch(err) {
         console.error(err)
       }
     },
-    hideMessage: async function (id) {
-      console.log(`Hide message with id ${id}`)
+    toggleHideMessage: async function (id, currentStatus) {
       try {
-        let response = await api.hideChatMessage(id)
-        console.info(response)
+        await api.toggleHideMessage(id, currentStatus)
       } catch(err) {
         console.error(err)
       }
-    }
+    },
+    toggleHighlightMessage: async function (id, currentStatus) {
+      try {
+        await api.toggleHighlightMessage(id, currentStatus)
+      } catch(err) {
+        console.error(err)
+      }
+    },
   }
 }
 </script>
@@ -117,7 +148,28 @@ export default {
     background-color: #F1F1F1;
   }
 
-  .stroke {
-    text-decoration: overline;
+  .chat-message-highlighted {
+    border: 2px solid orange;
+  }
+
+  .gryffindor a {
+    color: red;
+  }
+
+  .ravenclaw a {
+    color: blue;
+  }
+
+  .slytherin a {
+    color: green;
+  }
+
+  .hufflepuff a {
+    color: yellow;
+  }
+
+  .strike {
+    text-decoration: line-through;
+    opacity: 0.3
   }
 </style>

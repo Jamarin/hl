@@ -1,23 +1,27 @@
 <template>
   <div>
-    <h2>{{ house }} common room</h2>
-    <Chat :chat-area="house"/>
+    <h2>{{ getHouse }} common room</h2>
+    <Chat :chat-area="getHouse"/>
   </div>
 </template>
 
 <script>
 import Chat from "@/components/Chat";
+import Vuex from 'vuex'
+
 export default {
   components: {Chat},
-  props: ['house'],
-  name: "CommonRoom",
-  beforeRouteEnter(to, from, next) {
-    if(['gryffindor', 'slytherin' ,'ravenclaw', 'hufflepuff'].includes(to.params.house)) {
-      next()
-    } else {
-      next('/not-found')
+  computed: {
+    ...Vuex.mapGetters({
+      getHouse: 'user/getHouse'
+    })
+  },
+  created() {
+    if (!['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'].includes(this.getHouse)) {
+      this.$router.push({name: 'not-found'})
     }
-  }
+  },
+  name: "CommonRoom",
 }
 </script>
 
